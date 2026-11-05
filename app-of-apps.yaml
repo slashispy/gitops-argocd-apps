@@ -1,0 +1,40 @@
+# =============================================================================
+# App of Apps — Application raíz del circuito.
+# -----------------------------------------------------------------------------
+# Es el ÚNICO manifiesto que se aplica a mano (kubectl apply). A partir de aquí
+# Argo CD reconcilia todo lo demás desde Git:
+#   - projects/quicktask-project.yaml  (AppProject)
+#   - apps/applicationset.yaml         (ApplicationSet)
+# y el ApplicationSet, a su vez, genera la Application `quicktask`.
+#
+# Usa un directory generator recursivo sobre la raíz del repo, recogiendo los
+# manifiestos de projects/ y apps/. No se incluye a sí mismo (vive en la raíz,
+# no en esas carpetas).
+# =============================================================================
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: root
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/slashispy/gitops-argocd-apps
+    targetRevision: main
+    path: .
+    directory:
+      recurse: true
+      include: "{projects/*.yaml,apps/*.yaml}"
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      # El AppProject debe existir antes que el ApplicationSet que lo referencia.
+      - ServerSideApply=true

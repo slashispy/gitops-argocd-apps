@@ -1,0 +1,41 @@
+# =============================================================================
+# AppProject `quicktask` — scope de permisos del circuito.
+# -----------------------------------------------------------------------------
+# Un AppProject acota qué repos puede usar una Application, a qué clusters/
+# namespaces puede desplegar y qué tipos de recursos puede crear. Es la frontera
+# de seguridad de Argo CD. Todas las Applications generadas por el ApplicationSet
+# pertenecen a este proyecto.
+# =============================================================================
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: quicktask
+  namespace: argocd
+  # Evita el borrado accidental del proyecto mientras tenga apps vivas.
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  description: Circuito QuickTask GitOps (app genérica + dependencias).
+
+  # Repos de Git permitidos como source de las Applications.
+  sourceRepos:
+    - https://github.com/slashispy/helm-chart-generic-app
+    - https://github.com/slashispy/gitops-app-values
+    - https://github.com/slashispy/gitops-argocd-apps
+
+  # Destinos permitidos: cluster in-cluster y los namespaces del circuito.
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: quicktask
+    - server: https://kubernetes.default.svc
+      namespace: argocd
+
+  # Recursos cluster-scoped permitidos (vacío = ninguno salvo los de abajo).
+  clusterResourceWhitelist:
+    - group: ""
+      kind: Namespace
+
+  # Recursos namespaced permitidos (whitelist amplia para la demo).
+  namespaceResourceWhitelist:
+    - group: "*"
+      kind: "*"

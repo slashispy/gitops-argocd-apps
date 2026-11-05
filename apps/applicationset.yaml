@@ -1,0 +1,67 @@
+# =============================================================================
+# ApplicationSet `quicktask-apps` — genera una Application por cada app
+# declarada en `gitops-app-values/apps/*/metadata.yaml`.
+# -----------------------------------------------------------------------------
+# Patrón:
+#   - Git files generator: recorre los metadata.yaml y expone sus claves.
+#   - Multiple sources: combina el CHART (helm-chart-generic-app) con el
+#     VALUES (gitops-app-values) usando $values para referenciar el value file
+#     que vive en otro repositorio distinto al del chart.
+#   - Por cada metadata.yaml se crea una Application en el proyecto `quicktask`.
+#
+# Agregar una app nueva = agregar apps/<nombre>/{metadata.yaml,values.yaml} en
+# gitops-app-values. El ApplicationSet la detecta y la despliega sin tocar esto.
+# =============================================================================
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: quicktask-apps
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+
+  generators:
+    - git:
+        repoURL: https://github.com/slashispy/gitops-app-values
+        revision: main
+        # Cada metadata.yaml se convierte en un elemento del generador; sus
+        # claves quedan disponibles como {{ .name }}, {{ .namespace }}, etc.
+        files:
+          - path: "apps/*/metadata.yaml"
+
+  template:
+    metadata:
+      name: "{{ .name }}"
+      labels:
+        app.kubernetes.io/part-of: quicktask-gitops
+      finalizers:
+        - resources-finalizer.argocd.argoproj.io
+    spec:
+      project: quicktask
+
+      sources:
+        # (1) El chart genérico. Toma los values desde la 2ª source via $values.
+        - repoURL: "{{ .chart.repoURL }}"
+          path: "{{ .chart.path }}"
+          targetRevision: "{{ .chart.targetRevision }}"
+          helm:
+            releaseName: "{{ .name }}"
+            valueFiles:
+              - "$values/apps/{{ .name }}/values.yaml"
+        # (2) El repo de values, montado con alias $values (no despliega nada).
+        - repoURL: https://github.com/slashispy/gitops-app-values
+          targetRevision: main
+          ref: values
+
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: "{{ .namespace }}"
+
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          - ApplyOutOfSyncOnly=true
