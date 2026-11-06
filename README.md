@@ -8,6 +8,18 @@ _cómo se descubren_ las aplicaciones. Combina dos patrones clásicos de Argo CD
 > - [`gitops-app-values`](https://github.com/slashispy/gitops-app-values) → **qué** se despliega y **con qué values**.
 > - **`gitops-argocd-apps`** (este repo) → **quién** reconcilia (Argo CD).
 
+## Parte del circuito QuickTask GitOps
+
+| Repo | Rol |
+|---|---|
+| [`quicktask`](https://github.com/slashispy/quicktask) | Aplicación: API Go + MongoDB, JWT, `/health` y `/ready`. |
+| [`helm-chart-generic-app`](https://github.com/slashispy/helm-chart-generic-app) | Helm chart genérico y reutilizable (**cómo** se despliega). |
+| [`gitops-app-values`](https://github.com/slashispy/gitops-app-values) | Values por aplicación (**qué** se despliega). |
+| **`gitops-argocd-apps`** (este repo) | App of Apps + ApplicationSet de Argo CD (**quién** reconcilia). |
+| [`kind-gitops-utility-belt`](https://github.com/slashispy/kind-gitops-utility-belt) | Bootstrap del cluster KIND, tutorial y sitio del proyecto. |
+
+📖 [Tutorial paso a paso](https://slashispy.github.io/kind-gitops-utility-belt/tutorial) · 🌐 [Sitio del proyecto](https://slashispy.github.io/kind-gitops-utility-belt/)
+
 ## Modelo
 
 ```
@@ -85,11 +97,3 @@ kubectl apply --dry-run=client -f apps/applicationset.yaml
 No se toca este repo: basta con añadir `apps/<nueva-app>/{metadata.yaml,values.yaml}`
 en [`gitops-app-values`](https://github.com/slashispy/gitops-app-values). El
 ApplicationSet la detecta y crea su `Application` automáticamente.
-
-## Parte del circuito QuickTask GitOps
-
-1. [`quicktask`](https://github.com/slashispy/quicktask) — la aplicación (API Go + MongoDB).
-2. [`helm-chart-generic-app`](https://github.com/slashispy/helm-chart-generic-app) — chart genérico reutilizable.
-3. [`gitops-app-values`](https://github.com/slashispy/gitops-app-values) — values por app.
-4. **`gitops-argocd-apps`** — App of Apps + ApplicationSet. ← estás aquí
-5. [`kind-gitops-utility-belt`](https://github.com/slashispy/kind-gitops-utility-belt) — bootstrap del circuito en KIND.
