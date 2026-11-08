@@ -12,7 +12,8 @@ _cómo se descubren_ las aplicaciones. Combina dos patrones clásicos de Argo CD
 
 | Repo | Rol |
 |---|---|
-| [`quicktask`](https://github.com/slashispy/quicktask) | Aplicación: API Go + MongoDB, JWT, `/health` y `/ready`. |
+| [`quicktask`](https://github.com/slashispy/quicktask) | Aplicación: API Go + MongoDB, valida JWT, `/health` y `/ready`. |
+| [`quicktask-auth`](https://github.com/slashispy/quicktask-auth) | Emisor de JWT (Quarkus, client credentials, RS256). |
 | [`helm-chart-generic-app`](https://github.com/slashispy/helm-chart-generic-app) | Helm chart genérico y reutilizable (**cómo** se despliega). |
 | [`gitops-app-values`](https://github.com/slashispy/gitops-app-values) | Values por aplicación (**qué** se despliega). |
 | **`gitops-argocd-apps`** (este repo) | App of Apps + ApplicationSet de Argo CD (**quién** reconcilia). |
