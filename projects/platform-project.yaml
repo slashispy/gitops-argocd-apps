@@ -1,5 +1,5 @@
 # =============================================================================
-# AppProject `platform` — plataforma de CI (Tekton, y más adelante SonarQube).
+# AppProject `platform` — plataforma de CI (metrics-server, Tekton y más adelante SonarQube).
 # -----------------------------------------------------------------------------
 # Separado del proyecto `quicktask` a propósito (RF2.3, RNF6): la plataforma
 # que ejecuta los pipelines no comparte permisos con las apps que se construyen.
@@ -20,6 +20,7 @@ spec:
 
   sourceRepos:
     - https://github.com/slashispy/tekton-ci-pipelines
+    - https://kubernetes-sigs.github.io/metrics-server/
 
   destinations:
     - server: https://kubernetes.default.svc
@@ -28,6 +29,9 @@ spec:
       namespace: tekton-pipelines-resolvers
     - server: https://kubernetes.default.svc
       namespace: tekton-ci
+    # metrics-server vive en kube-system (RoleBinding auth-reader y Service del APIService).
+    - server: https://kubernetes.default.svc
+      namespace: kube-system
 
   clusterResourceWhitelist:
     - {group: "", kind: Namespace}
@@ -37,6 +41,7 @@ spec:
     - {group: admissionregistration.k8s.io, kind: MutatingWebhookConfiguration}
     - {group: admissionregistration.k8s.io, kind: ValidatingWebhookConfiguration}
     - {group: triggers.tekton.dev, kind: ClusterInterceptor}
+    - {group: apiregistration.k8s.io, kind: APIService}
 
   namespaceResourceWhitelist:
     - group: "*"

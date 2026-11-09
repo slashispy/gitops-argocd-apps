@@ -74,6 +74,7 @@ circuito, instalada por GitOps igual que las apps (spec `quicktask-tekton-ci`):
 | Archivo | Qué es |
 |---|---|
 | `projects/platform-project.yaml` | AppProject `platform`: separado de `quicktask`; incluye los permisos cluster-scoped estrictos que necesita Tekton (CRDs, ClusterRoles, webhooks, ClusterInterceptors). |
+| `apps/platform-metrics-server.yaml` | metrics-server (chart oficial fijado) para `kubectl top` y el HPA de Tekton. Sync wave `-1`. |
 | `apps/platform-tekton.yaml` | Tekton Pipelines + Triggers + Dashboard (solo lectura), versiones fijadas en [`tekton-ci-pipelines`](https://github.com/slashispy/tekton-ci-pipelines). Sync wave `0`. |
 | `apps/platform-ci.yaml` | Namespace `tekton-ci`, RBAC y (más adelante) Tasks, Pipelines y Triggers. Sync wave `1`: espera a que los CRDs de Tekton existan. |
 
