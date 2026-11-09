@@ -1,0 +1,33 @@
+# =============================================================================
+# Application `platform-ci` — namespace `tekton-ci`, RBAC, Tasks, Pipelines,
+# Triggers y poller (tekton-ci-pipelines/ci). Sync wave 1: espera a que
+# `platform-tekton` esté Healthy (CRDs de Tekton disponibles).
+# =============================================================================
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: platform-ci
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+  labels:
+    app.kubernetes.io/part-of: quicktask-gitops
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: platform
+  source:
+    repoURL: https://github.com/slashispy/tekton-ci-pipelines
+    targetRevision: main
+    path: ci
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: tekton-ci
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - ServerSideApply=true
+      - CreateNamespace=true
+      - SkipDryRunOnMissingResource=true

@@ -66,6 +66,17 @@ El motor de descubrimiento. Un **git files generator** recorre
 Las claves del `metadata.yaml` (`name`, `namespace`, `chart.*`) se interpolan en la
 plantilla con Go templating (`goTemplate: true`).
 
+## Plataforma de CI (`platform`)
+
+Además del proyecto `quicktask`, este repo declara la **plataforma de CI** del
+circuito, instalada por GitOps igual que las apps (spec `quicktask-tekton-ci`):
+
+| Archivo | Qué es |
+|---|---|
+| `projects/platform-project.yaml` | AppProject `platform`: separado de `quicktask`; incluye los permisos cluster-scoped estrictos que necesita Tekton (CRDs, ClusterRoles, webhooks, ClusterInterceptors). |
+| `apps/platform-tekton.yaml` | Tekton Pipelines + Triggers + Dashboard (solo lectura), versiones fijadas en [`tekton-ci-pipelines`](https://github.com/slashispy/tekton-ci-pipelines). Sync wave `0`. |
+| `apps/platform-ci.yaml` | Namespace `tekton-ci`, RBAC y (más adelante) Tasks, Pipelines y Triggers. Sync wave `1`: espera a que los CRDs de Tekton existan. |
+
 ## Uso
 
 ```bash

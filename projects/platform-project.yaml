@@ -1,0 +1,43 @@
+# =============================================================================
+# AppProject `platform` — plataforma de CI (Tekton, y más adelante SonarQube).
+# -----------------------------------------------------------------------------
+# Separado del proyecto `quicktask` a propósito (RF2.3, RNF6): la plataforma
+# que ejecuta los pipelines no comparte permisos con las apps que se construyen.
+#
+# Necesita permisos cluster-scoped que `quicktask` no tiene, porque Tekton
+# instala CRDs, ClusterRoles/Bindings, webhooks y ClusterInterceptors. La lista
+# de abajo es la estricta: lo que contienen los manifiestos oficiales fijados.
+# =============================================================================
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: platform
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  description: Plataforma de CI del circuito (Tekton y herramientas de calidad).
+
+  sourceRepos:
+    - https://github.com/slashispy/tekton-ci-pipelines
+
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: tekton-pipelines
+    - server: https://kubernetes.default.svc
+      namespace: tekton-pipelines-resolvers
+    - server: https://kubernetes.default.svc
+      namespace: tekton-ci
+
+  clusterResourceWhitelist:
+    - {group: "", kind: Namespace}
+    - {group: apiextensions.k8s.io, kind: CustomResourceDefinition}
+    - {group: rbac.authorization.k8s.io, kind: ClusterRole}
+    - {group: rbac.authorization.k8s.io, kind: ClusterRoleBinding}
+    - {group: admissionregistration.k8s.io, kind: MutatingWebhookConfiguration}
+    - {group: admissionregistration.k8s.io, kind: ValidatingWebhookConfiguration}
+    - {group: triggers.tekton.dev, kind: ClusterInterceptor}
+
+  namespaceResourceWhitelist:
+    - group: "*"
+      kind: "*"

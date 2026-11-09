@@ -1,0 +1,50 @@
+# =============================================================================
+# Application `platform-tekton` — Tekton Pipelines + Triggers + Dashboard (RO).
+# -----------------------------------------------------------------------------
+# Kustomize sobre las releases oficiales con VERSIÓN FIJADA (ver el repo
+# tekton-ci-pipelines/platform/tekton). Sync wave 0: los CRDs y controllers
+# deben existir antes que `platform-ci` (wave 1), que usa recursos de Tekton.
+# ServerSideApply: los CRDs de Tekton superan el límite de annotation de
+# `kubectl apply` (262144 bytes).
+# =============================================================================
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: platform-tekton
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+  labels:
+    app.kubernetes.io/part-of: quicktask-gitops
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: platform
+  source:
+    repoURL: https://github.com/slashispy/tekton-ci-pipelines
+    targetRevision: main
+    path: platform/tekton
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: tekton-pipelines
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - ServerSideApply=true
+      - CreateNamespace=true
+      # Los ClusterInterceptor se aplican en el mismo sync que su CRD.
+      - SkipDryRunOnMissingResource=true
+      # Los webhooks de Tekton mutan sus propios ConfigMaps/CRDs en runtime.
+      - RespectIgnoreDifferences=true
+  ignoreDifferences:
+    - group: admissionregistration.k8s.io
+      kind: MutatingWebhookConfiguration
+      jqPathExpressions: [".webhooks[].clientConfig.caBundle"]
+    - group: admissionregistration.k8s.io
+      kind: ValidatingWebhookConfiguration
+      jqPathExpressions: [".webhooks[].clientConfig.caBundle"]
+    - group: ""
+      kind: Secret
+      jqPathExpressions: [".data"]
